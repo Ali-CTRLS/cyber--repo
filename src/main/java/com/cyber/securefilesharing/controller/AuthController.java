@@ -5,7 +5,6 @@ import com.cyber.securefilesharing.model.UserAccount;
 import com.cyber.securefilesharing.repository.UserRepository;
 import com.cyber.securefilesharing.service.UserService;
 import jakarta.validation.Valid;
-import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,27 +40,42 @@ public class AuthController {
         this.userService = userService;
     }
 
-    record RegisterRequest(String username, String password) {}
-    record AuthResponse(String token) {}
+    public static class RegisterRequest {
+        @jakarta.validation.constraints.NotBlank
+        private String username;
+        @jakarta.validation.constraints.NotBlank
+        private String password;
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+
+    public static class AuthResponse {
+        private String token;
+        public AuthResponse(String token) { this.token = token; }
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        if (userRepository.existsByUsername(request.username())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Username is already taken"));
+        if (userRepository.existsByUsername(request.getUsername())) {
+            return ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", "Username is already taken"));
         }
         UserAccount account = new UserAccount();
-        account.setUsername(request.username());
-        account.setPassword(passwordEncoder.encode(request.password()));
+        account.setUsername(request.getUsername());
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(account);
-        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "User registered successfully"));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody RegisterRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.username(), request.password())
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
-        UserDetails userDetails = userService.loadUserByUsername(request.username());
+        UserDetails userDetails = userService.loadUserByUsername(request.getUsername());
         String token = jwtService.generateToken(userDetails);
         return ResponseEntity.ok(new AuthResponse(token));
     }

@@ -46,22 +46,55 @@ public class FileController {
         this.shareTokenRepository = shareTokenRepository;
     }
 
-    record FileInfo(Long id, String fileName, long size, Instant uploadedAt) {}
-    record ShareRequest(Long fileId, Integer expiresMinutes) {}
-    record ShareResponse(String shareUrl, Instant expiresAt) {}
+    public static class FileInfo {
+        private Long id;
+        private String fileName;
+        private long size;
+        private Instant uploadedAt;
+        public FileInfo(Long id, String fileName, long size, Instant uploadedAt) {
+            this.id = id; this.fileName = fileName; this.size = size; this.uploadedAt = uploadedAt;
+        }
+        public Long getId() { return id; }
+        public String getFileName() { return fileName; }
+        public long getSize() { return size; }
+        public Instant getUploadedAt() { return uploadedAt; }
+    }
+    
+    public static class ShareRequest {
+        private Long fileId;
+        private Integer expiresMinutes;
+        public Long getFileId() { return fileId; }
+        public void setFileId(Long fileId) { this.fileId = fileId; }
+        public Integer getExpiresMinutes() { return expiresMinutes; }
+        public void setExpiresMinutes(Integer expiresMinutes) { this.expiresMinutes = expiresMinutes; }
+    }
+    
+    public static class ShareResponse {
+        private String shareUrl;
+        private Instant expiresAt;
+        public ShareResponse(String shareUrl, Instant expiresAt) {
+            this.shareUrl = shareUrl; this.expiresAt = expiresAt;
+        }
+        public String getShareUrl() { return shareUrl; }
+        public Instant getExpiresAt() { return expiresAt; }
+    }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> upload(Principal principal, @RequestPart("file") MultipartFile file) {
+    public ResponseEntity<?> upload(Principal principal, 
+                                   @RequestPart("file") MultipartFile file,
+                                   @RequestParam(required = false) Long folderId) {
         UserAccount owner = getUser(principal);
-        FileMetadata metadata = storageService.storeFile(file, owner);
-        return ResponseEntity.created(URI.create("/api/files/" + metadata.getId()))
-                .body(Map.of("id", metadata.getId(), "fileName", metadata.getFileName()));
+        FileMetadata metadata = storageService.storeFile(file, owner, folderId);
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("id", metadata.getId());
+        response.put("fileName", metadata.getFileName());
+        return ResponseEntity.created(URI.create("/api/files/" + metadata.getId())).body(response);
     }
 
     @GetMapping
-    public List<FileInfo> listFiles(Principal principal) {
+    public List<FileInfo> listFiles(Principal principal, @RequestParam(required = false) Long folderId) {
         UserAccount owner = getUser(principal);
-        return storageService.getFilesForUser(owner).stream()
+        return storageService.getFilesForUser(owner, folderId).stream()
             .map(file -> new FileInfo(file.getId(), file.getFileName(), file.getSize(), file.getUploadedAt()))
             .collect(Collectors.toList());
     }
@@ -95,14 +128,14 @@ public class FileController {
     @PostMapping("/share")
     public ResponseEntity<ShareResponse> createShareLink(Principal principal, @RequestBody ShareRequest request) {
         UserAccount owner = getUser(principal);
-        FileMetadata metadata = storageService.findById(request.fileId())
+        FileMetadata metadata = storageService.findById(request.getFileId())
             .filter(file -> file.getOwner().getId().equals(owner.getId()))
             .orElseThrow(() -> new IllegalArgumentException("File not found or access denied"));
 
         ShareToken token = new ShareToken();
         token.setToken(UUID.randomUUID().toString());
         token.setFileMetadata(metadata);
-        token.setExpiresAt(Instant.now().plusSeconds((request.expiresMinutes() == null ? 60 : request.expiresMinutes()) * 60L));
+        token.setExpiresAt(Instant.now().plusSeconds((request.getExpiresMinutes() == null ? 60 : request.getExpiresMinutes()) * 60L));
         shareTokenRepository.save(token);
 
         String shareUrl = "/share/" + token.getToken();
@@ -112,7 +145,10 @@ public class FileController {
     @GetMapping("/me")
     public ResponseEntity<?> me(Principal principal) {
         UserAccount owner = getUser(principal);
-        return ResponseEntity.ok(Map.of("username", owner.getUsername(), "id", owner.getId()));
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("username", owner.getUsername());
+        response.put("id", owner.getId());
+        return ResponseEntity.ok(response);
     }
 
     private UserAccount getUser(Principal principal) {

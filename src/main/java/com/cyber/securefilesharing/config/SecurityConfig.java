@@ -1,7 +1,6 @@
 package com.cyber.securefilesharing.config;
 
 import com.cyber.securefilesharing.service.UserService;
-import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -28,9 +27,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/**", "/share/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/auth/**", "/share/**", "/h2-console/**", "/index.html", "/css/**", "/js/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

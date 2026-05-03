@@ -23,7 +23,7 @@ public class JwtService {
     private long expirationMinutes;
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(Map.of(), userDetails);
+        return generateToken(java.util.Collections.emptyMap(), userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {

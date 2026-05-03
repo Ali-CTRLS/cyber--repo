@@ -22,10 +22,14 @@ public class FileStorageService {
 
     private final Path storageLocation;
     private final FileMetadataRepository repository;
+    private final com.cyber.securefilesharing.repository.FolderRepository folderRepository;
 
-    public FileStorageService(@Value("${storage.location}") String storageLocation, FileMetadataRepository repository) {
-        this.storageLocation = Path.of(storageLocation).toAbsolutePath().normalize();
+    public FileStorageService(@Value("${storage.location}") String storageLocation, 
+                              FileMetadataRepository repository,
+                              com.cyber.securefilesharing.repository.FolderRepository folderRepository) {
+        this.storageLocation = java.nio.file.Paths.get(storageLocation).toAbsolutePath().normalize();
         this.repository = repository;
+        this.folderRepository = folderRepository;
         try {
             Files.createDirectories(this.storageLocation);
         } catch (IOException e) {
@@ -33,9 +37,9 @@ public class FileStorageService {
         }
     }
 
-    public FileMetadata storeFile(MultipartFile multipartFile, UserAccount owner) {
+    public FileMetadata storeFile(MultipartFile multipartFile, UserAccount owner, Long folderId) {
         try {
-            String originalFilename = Path.of(multipartFile.getOriginalFilename()).getFileName().toString();
+            String originalFilename = java.nio.file.Paths.get(multipartFile.getOriginalFilename()).getFileName().toString();
             String storageName = UUID.randomUUID().toString() + "-" + originalFilename;
             Path target = storageLocation.resolve(storageName);
             Files.copy(multipartFile.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
@@ -46,6 +50,9 @@ public class FileStorageService {
             metadata.setSize(multipartFile.getSize());
             metadata.setUploadedAt(Instant.now());
             metadata.setOwner(owner);
+            if (folderId != null) {
+                metadata.setFolder(folderRepository.findById(folderId).orElse(null));
+            }
             return repository.save(metadata);
         } catch (IOException e) {
             throw new RuntimeException("Failed to store file", e);
@@ -65,8 +72,12 @@ public class FileStorageService {
         }
     }
 
-    public List<FileMetadata> getFilesForUser(UserAccount owner) {
-        return repository.findByOwner(owner);
+    public List<FileMetadata> getFilesForUser(UserAccount owner, Long folderId) {
+        if (folderId == null) {
+            return repository.findByOwnerAndFolderIsNull(owner);
+        } else {
+            return repository.findByOwnerAndFolder(owner, folderRepository.findById(folderId).orElse(null));
+        }
     }
 
     public Optional<FileMetadata> findById(Long id) {

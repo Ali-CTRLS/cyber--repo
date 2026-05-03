@@ -33,7 +33,13 @@ public class FileMetadata {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private UserAccount owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Folder folder;
 
     public Long getId() {
         return id;
@@ -81,5 +87,13 @@ public class FileMetadata {
 
     public void setOwner(UserAccount owner) {
         this.owner = owner;
+    }
+
+    public Folder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(Folder folder) {
+        this.folder = folder;
     }
 }

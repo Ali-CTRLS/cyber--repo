@@ -4,7 +4,6 @@ import com.cyber.securefilesharing.model.ShareToken;
 import com.cyber.securefilesharing.repository.ShareTokenRepository;
 import com.cyber.securefilesharing.service.FileStorageService;
 import java.time.Instant;
-import java.util.Map;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

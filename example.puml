@@ -1,0 +1,224 @@
+@startuml InjuryAssist_Simple
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam ranksep 80
+skinparam nodesep 50
+title Injury Assist System — Student Version
+
+' ─────────────────────────────────────────
+' ENUMS
+' ─────────────────────────────────────────
+enum BodyPart {
+  THIGH
+  KNEE
+  ANKLE
+  SHOULDER
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+' ─────────────────────────────────────────
+' MODEL LAYER
+' ─────────────────────────────────────────
+package "com.injuryassist.model" {
+
+  abstract class Person {
+    # name      : String
+    # age       : int
+    # contactNo : String
+    # gender    : Boolean
+    # address   : String
+  }
+
+  class Patient {
+    - id       : Long
+    - username : String
+    - password : String
+    + addInjury(injury : Injury) : void
+  }
+
+  abstract class Doctor {
+    # id               : Long
+    # isAvailable      : boolean
+    # availabilitySlot : String
+  }
+
+  class GeneralDoctor {
+    - clinicRoomNumber : String
+    + provideAdvice(injury : Injury) : String
+  }
+
+  class SpecializedDoctor {
+    - specialty          : String
+    - certificationLevel : String
+    + performAssessment(injury : Injury) : String
+  }
+
+  class Injury {
+    - id                 : Long
+    - isCritical         : boolean
+    - recommendation     : String
+    - athleteDescription : String
+    - bodyPart           : BodyPart
+  }
+
+  class Appointment {
+    - id              : Long
+    - appointmentDate : LocalDateTime
+    - status          : AppointmentStatus
+  }
+
+  class Report {
+    - id            : Long
+    - diagnosis     : String
+    - treatmentPlan : String
+    - generatedDate : LocalDateTime
+  }
+
+  ' Inheritance
+  Person       <|-- Patient
+  Person       <|-- Doctor
+  Doctor       <|-- GeneralDoctor
+  Doctor       <|-- SpecializedDoctor
+
+  ' Relationships
+  Patient     "1" *-- "0..*" Injury      : has
+  Patient     "1" *-- "0..*" Appointment : books
+  Appointment "0..*" --> "1" Doctor      : assigned to
+  Appointment "1"    *-- "0..1" Report   : generates
+  Injury       --> BodyPart              : references
+  Appointment  --> AppointmentStatus     : tracks
+}
+
+' ─────────────────────────────────────────
+' REPOSITORY LAYER
+' ─────────────────────────────────────────
+package "com.injuryassist.repository" {
+  interface PatientRepository
+  interface InjuryRepository
+  interface DoctorRepository
+  interface AppointmentRepository
+  interface ReportRepository
+}
+
+' ─────────────────────────────────────────
+' SERVICE LAYER
+' ─────────────────────────────────────────
+package "com.injuryassist.service" {
+
+  class AuthService {
+    - patientRepo : PatientRepository
+    + authenticate(username, password) : Patient
+    + register(patient : Patient) : void
+  }
+
+  class InjuryService {
+    - injuryRepo : InjuryRepository
+    + processAssessment(injury : Injury) : String
+    - checkCriticality(injury : Injury) : boolean
+  }
+
+  class AppointmentService {
+    - appointmentRepo : AppointmentRepository
+    - doctorRepo      : DoctorRepository
+    + getAvailableSlots() : List<Appointment>
+    + book(patientId : Long, doctorId : Long) : Appointment
+  }
+
+  class ReportService {
+    - reportRepo : ReportRepository
+    + generate(appointment : Appointment) : Report
+    + getByAppointmentId(id : Long) : Report
+  }
+
+  ' ← the only fix: ReportService wired to AppointmentService
+  AppointmentService --> ReportService : triggers after booking
+}
+
+' ─────────────────────────────────────────
+' CONTROLLER LAYER
+' ─────────────────────────────────────────
+package "com.injuryassist.controller" {
+
+  class AuthController {
+    - authService : AuthService
+    + login()  : String
+    + signup() : String
+    + logout() : String
+  }
+
+  class InjuryController {
+    - injuryService : InjuryService
+    + showForm()        : String
+    + submitInjury()    : String
+  }
+
+  class AppointmentController {
+    - appointmentService : AppointmentService
+    + showSlots()        : String
+    + book()             : String
+  }
+
+  ' ← the only fix: one new controller so report-view has an owner
+  class ReportController {
+    - reportService : ReportService
+    + viewReport(appointmentId : Long) : String
+  }
+}
+
+' ─────────────────────────────────────────
+' UI TEMPLATES
+' ─────────────────────────────────────────
+package "templates" {
+  class "login.html"        as T1 <<Boundary>>
+  class "signup.html"       as T2 <<Boundary>>
+  class "injury-form.html"  as T3 <<Boundary>>
+  class "result.html"       as T4 <<Boundary>>
+  class "slots.html"        as T5 <<Boundary>>
+  class "report-view.html"  as T6 <<Boundary>>
+}
+
+' ─────────────────────────────────────────
+' WIRING — UI to Controllers
+' ─────────────────────────────────────────
+T1 ..> AuthController        : POST /auth/login
+T2 ..> AuthController        : POST /auth/signup
+T3 ..> InjuryController      : POST /injury/submit
+T4 ..> AppointmentController : POST /appointment/book
+T5 ..> AppointmentController : GET  /appointment/slots
+T6 ..> ReportController      : GET  /report/view
+
+' ─────────────────────────────────────────
+' WIRING — Controllers to Services
+' ─────────────────────────────────────────
+AuthController        --> AuthService
+InjuryController      --> InjuryService
+AppointmentController --> AppointmentService
+ReportController      --> ReportService
+
+' ─────────────────────────────────────────
+' WIRING — Services to Repositories
+' ─────────────────────────────────────────
+AuthService        --> PatientRepository
+InjuryService      --> InjuryRepository
+AppointmentService --> AppointmentRepository
+AppointmentService --> DoctorRepository
+ReportService      --> ReportRepository
+
+' ─────────────────────────────────────────
+' WIRING — Repositories to Entities
+' ─────────────────────────────────────────
+PatientRepository     ..> Patient
+InjuryRepository      ..> Injury
+DoctorRepository      ..> Doctor
+AppointmentRepository ..> Appointment
+ReportRepository      ..> Report
+
+@enduml

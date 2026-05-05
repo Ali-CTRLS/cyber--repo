@@ -6,3 +6,7 @@ storage/
 .idea/
 *.iml
 .DS_Store
+
+instructions.md
+example.md
+requriments.txt

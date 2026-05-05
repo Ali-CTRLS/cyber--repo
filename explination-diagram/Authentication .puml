@@ -1,0 +1,122 @@
+@startuml Security_Authentication
+skinparam monochrome true
+skinparam shadowing false
+skinparam maxMessageSize 150
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+title Cybersecurity Focus: Authentication & Session Management
+
+box "Client Side" #f9f9f9
+actor "User (Patient/Doctor)" as User
+participant "Browser" as Browser
+end box
+
+box "Server Side (Flask)" #e6f7ff
+participant "WTForms\n(CSRF Protection)" as WTF
+participant "Auth Blueprint" as Auth
+participant "Werkzeug Security\n(PBKDF2/scrypt)" as Werkzeug
+participant "Flask-Login\n(Session Manager)" as Session
+end box
+
+database "SQLite Database" as DB
+
+== Registration (Secure Password Storage) ==
+User -> Browser : Enters details & Password
+Browser -> Auth : POST /auth/register (Form Data)
+activate Auth
+
+Auth -> WTF : validate_on_submit()
+note right of WTF: Validates CSRF token\nprevents Cross-Site Request Forgery
+WTF --> Auth : is_valid = True
+
+Auth -> Werkzeug : generate_password_hash(password)
+note right of Werkzeug: Uses PBKDF2:sha256\nor scrypt algorithm.\nAutomatically generates & appends a salt.
+Werkzeug --> Auth : password_hash (Salt + Hash)
+
+Auth -> DB : Store User (username, password_hash)
+DB --> Auth : Success
+Auth --> Browser : Redirect to Login
+deactivate Auth
+
+== Login (Authentication & Session) ==
+User -> Browser : Enters Username & Password
+Browser -> Auth : POST /auth/login
+activate Auth
+
+Auth -> DB : Fetch User by Username
+DB --> Auth : User Record (includes password_hash)
+
+Auth -> Werkzeug : check_password_hash(stored_hash, input_password)
+note right of Werkzeug: Extracts salt from stored_hash.\nHashes input_password with salt.\nCompares using constant-time\nstring comparison (prevents timing attacks).
+Werkzeug --> Auth : True (Match)
+
+Auth -> Session : login_user(User)
+note right of Session: Generates a cryptographically\nsecure session ID.
+Session -> Browser : Set-Cookie: session=SecureToken; HttpOnly; SameSite=Lax
+note left of Browser: HttpOnly prevents XSS theft.\nSameSite prevents CSRF.
+Auth --> Browser : Redirect to Dashboard
+deactivate Auth
+@enduml
+
+@startuml Security_Encryption
+skinparam monochrome true
+skinparam shadowing false
+skinparam maxMessageSize 150
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+title Cybersecurity Focus: Medical Report Encryption at Rest (AES-256-GCM)
+
+actor Doctor
+participant "Doctor Blueprint" as API
+participant "Cryptography Library\n(Hazmat Primitives)" as Crypto
+database "SQLite Database" as DB
+participant "Local File System\n(storage/reports/)" as FS
+actor Patient
+
+== Encrypting Sensitive Medical Data ==
+Doctor -> API : Uploads Medical Report (File)
+activate API
+
+API -> Crypto : AESGCM.generate_key(bit_length=256)
+note right of Crypto: Generates cryptographically\nsecure random 256-bit key.
+Crypto --> API : raw_key (32 bytes)
+API -> API : base64_encode(raw_key) -> base64_key
+
+API -> Crypto : os.urandom(12)
+Crypto --> API : Nonce (12 bytes)
+note right of Crypto: GCM mode requires a unique\nnonce for every encryption operation.
+
+API -> Crypto : AESGCM(raw_key).encrypt(nonce, plaintext_file, None)
+note right of Crypto: Authenticated Encryption with Associated Data (AEAD).\nProvides both Confidentiality (encryption)\nand Integrity (MAC authentication tag).
+Crypto --> API : ciphertext + 16-byte MAC Tag
+
+API -> API : Combine: final_bytes = nonce + ciphertext + tag
+API -> FS : Write final_bytes to UUID.enc
+FS --> API : File stored on disk
+
+API -> DB : Store metadata:\n- encrypted_file_path\n- base64_key (DEK)
+note right of DB: Key is stored in DB, while\nciphertext is on disk. This separates\nthe encrypted data from the key.
+DB --> API : Success
+deactivate API
+
+== Decrypting Medical Data for Authorized User ==
+Patient -> API : Request File Download
+activate API
+
+API -> DB : Fetch Report metadata (base64_key, file_path)
+DB --> API : Metadata
+
+API -> FS : Read bytes from UUID.enc
+FS --> API : final_bytes (nonce + ciphertext + tag)
+
+API -> API : Extract Nonce (first 12 bytes)\nExtract Ciphertext+Tag (remaining bytes)
+
+API -> Crypto : AESGCM(raw_key).decrypt(nonce, ciphertext_and_tag, None)
+note right of Crypto: Cryptography lib calculates MAC of ciphertext.\nIf it doesn't match the appended Tag,\nit raises InvalidTag error (prevents tampering).
+Crypto --> API : plaintext_file_bytes
+
+API --> Patient : Serve Decrypted File
+deactivate API
+@enduml

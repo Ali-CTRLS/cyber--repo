@@ -52,6 +52,9 @@
                         <input type="text" id="fileSearch" placeholder="Search files, folders..." oninput="filterGrid()">
                     </div>
                     <div class="actions">
+                        <button class="btn-secondary" id="newFolderBtn" style="margin-right: 8px;">
+                            <span class="icon">📁+</span> New Folder
+                        </button>
                         <button class="btn-primary" id="uploadBtn">
                             <span class="icon">📤</span> Upload File
                         </button>
@@ -97,8 +100,31 @@
                         <p class="view-subtitle">All active secure share links you've created</p>
                     </div>
                 </header>
-                <div id="sharedList" class="shared-list">
-                    <div class="loading-state"><div class="spinner"></div><p>Loading shared links...</p></div>
+                <div id="sharedViewContent" class="shared-view-content">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span class="settings-icon">🔗</span>
+                            <div>
+                                <h3>Manage Active Links</h3>
+                                <p>Revoke or view your current secure sharing tokens</p>
+                            </div>
+                        </div>
+                        <div class="settings-body">
+                            <table class="share-table">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Expires</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sharedLinksTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 

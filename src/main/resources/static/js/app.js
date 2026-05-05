@@ -149,7 +149,7 @@ function renderExplorer(subfolders, files) {
             pathStack.push({ id: folder.id, name: folder.name });
             updateBreadcrumb();
             fetchFolders(folder.id);
-        });
+        }, folder.id, true);
         grid.appendChild(card);
     });
 
@@ -180,7 +180,7 @@ function getFileIcon(name) {
     return icons[ext] || '📄';
 }
 
-function createItemCard(name, icon, onClick, fileId = null) {
+function createItemCard(name, icon, onClick, id = null, isFolder = false) {
     const div = document.createElement('div');
     div.className = 'item-card';
     if (onClick) div.onclick = onClick;
@@ -189,18 +189,19 @@ function createItemCard(name, icon, onClick, fileId = null) {
         <div class="item-icon">${icon}</div>
         <div class="item-name" title="${name}">${name}</div>
         <div class="item-actions">
-            ${fileId ? `<button class="action-btn" title="Share" onclick="event.stopPropagation(); shareFile(${fileId})">🔗</button>` : ''}
-            <button class="action-btn" title="Delete" onclick="event.stopPropagation(); deleteItem(${fileId || 'null'}, this)">🗑️</button>
+            ${!isFolder ? `<button class="action-btn" title="Share" onclick="event.stopPropagation(); shareFile(${id})">🔗</button>` : ''}
+            <button class="action-btn" title="Delete" onclick="event.stopPropagation(); deleteItem(${id}, this, ${isFolder})">🗑️</button>
         </div>
     `;
     return div;
 }
 
-async function deleteItem(fileId, btn) {
-    if (!fileId || !confirm('Delete this file?')) return;
-    const res = await apiFetch(`${API_BASE}/files/${fileId}`, { method: 'DELETE' });
+async function deleteItem(id, btn, isFolder = false) {
+    if (!id || !confirm(`Delete this ${isFolder ? 'folder' : 'file'}?`)) return;
+    const url = isFolder ? `${API_BASE}/folders/${id}` : `${API_BASE}/files/${id}`;
+    const res = await apiFetch(url, { method: 'DELETE' });
     if (res !== null) {
-        showToast('File deleted');
+        showToast(`${isFolder ? 'Folder' : 'File'} deleted`);
         fetchFolders(currentFolderId);
     }
 }
@@ -257,32 +258,37 @@ async function applyTemplateFromView(id) {
 
 // ---- SHARED VIEW ----
 async function loadSharedView() {
-    const list = document.getElementById('sharedList');
-    list.innerHTML = `
-        <div class="settings-card" style="max-width:600px;">
-            <div class="settings-card-header">
-                <span class="settings-icon">🔗</span>
-                <div>
-                    <h3>Active Share Links</h3>
-                    <p>Links you have generated for secure file sharing</p>
-                </div>
-            </div>
-            <div class="settings-body">
-                <div class="setting-row">
-                    <label>Link Duration</label>
-                    <span>60 Minutes per link</span>
-                </div>
-                <div class="setting-row">
-                    <label>How to share</label>
-                    <span>Go to <strong>My Files</strong>, hover a file and click 🔗</span>
-                </div>
-                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:16px;">
-                    Share links are time-limited and expire automatically. 
-                    Navigate to My Files and click the share icon (🔗) on any file to generate a secure link.
-                </p>
-            </div>
-        </div>
-    `;
+    const tableBody = document.getElementById('sharedLinksTable');
+    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading shared links...</td></tr>';
+    
+    const shares = await apiFetch(`${API_BASE}/files/shares`) || [];
+    tableBody.innerHTML = '';
+
+    if (shares.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No active share links found.</td></tr>';
+        return;
+    }
+
+    shares.forEach(s => {
+        const tr = document.createElement('tr');
+        const expiryDate = new Date(s.expiresAt).toLocaleString();
+        tr.innerHTML = `
+            <td><strong>${s.fileName}</strong></td>
+            <td>${expiryDate}</td>
+            <td><span class="badge ${s.active ? 'badge-active' : 'badge-expired'}">${s.active ? 'Active' : 'Expired'}</span></td>
+            <td>
+                <button class="btn-secondary" style="padding:4px 8px;font-size:0.8rem;" onclick="revokeLink('${s.token}')">Revoke</button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
+async function revokeLink(token) {
+    if (!confirm('Revoke this share link?')) return;
+    await apiFetch(`${API_BASE}/files/shares/${token}`, { method: 'DELETE' });
+    showToast('Link revoked');
+    loadSharedView();
 }
 
 // ---- SETTINGS VIEW ----
@@ -324,6 +330,22 @@ function closeModal() {
 function setupEventListeners() {
     const uploadBtn = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
+    const newFolderBtn = document.getElementById('newFolderBtn');
+
+    if (newFolderBtn) {
+        newFolderBtn.onclick = async () => {
+            const name = prompt('Enter folder name:');
+            if (name) {
+                await apiFetch(`${API_BASE}/folders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, parentId: currentFolderId })
+                });
+                showToast('Folder created');
+                fetchFolders(currentFolderId);
+            }
+        };
+    }
 
     uploadBtn.onclick = () => fileInput.click();
     fileInput.onchange = async () => {

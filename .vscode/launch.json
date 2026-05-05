@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SecureFileSharingApplication<secure-file-sharing>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.cyber.securefilesharing.SecureFileSharingApplication",
+            "projectName": "secure-file-sharing",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

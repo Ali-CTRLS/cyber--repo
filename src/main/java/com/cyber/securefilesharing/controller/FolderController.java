@@ -73,6 +73,12 @@ public class FolderController {
         return folderService.getSubfolders(owner, id);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFolder(Principal principal, @PathVariable Long id) {
+        UserAccount owner = getUser(principal);
+        folderService.deleteFolder(id, owner);
+    }
+
     private UserAccount getUser(Principal principal) {
         return userRepository.findByUsername(principal.getName())
             .orElseThrow(() -> new RuntimeException("User not found"));

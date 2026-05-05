@@ -151,6 +151,45 @@ public class FileController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/shares")
+    public List<ShareInfo> listSharedLinks(Principal principal) {
+        UserAccount owner = getUser(principal);
+        return shareTokenRepository.findAll().stream()
+            .filter(token -> token.getFileMetadata().getOwner().getId().equals(owner.getId()))
+            .map(token -> new ShareInfo(
+                token.getToken(), 
+                token.getFileMetadata().getFileName(), 
+                token.getExpiresAt(),
+                token.getExpiresAt().isAfter(Instant.now())
+            ))
+            .collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/shares/{token}")
+    public ResponseEntity<?> revokeShareLink(Principal principal, @PathVariable String token) {
+        UserAccount owner = getUser(principal);
+        ShareToken shareToken = shareTokenRepository.findByToken(token)
+            .filter(t -> t.getFileMetadata().getOwner().getId().equals(owner.getId()))
+            .orElseThrow(() -> new IllegalArgumentException("Share link not found or access denied"));
+        
+        shareTokenRepository.delete(shareToken);
+        return ResponseEntity.noContent().build();
+    }
+
+    public static class ShareInfo {
+        private String token;
+        private String fileName;
+        private Instant expiresAt;
+        private boolean active;
+        public ShareInfo(String token, String fileName, Instant expiresAt, boolean active) {
+            this.token = token; this.fileName = fileName; this.expiresAt = expiresAt; this.active = active;
+        }
+        public String getToken() { return token; }
+        public String getFileName() { return fileName; }
+        public Instant getExpiresAt() { return expiresAt; }
+        public boolean isActive() { return active; }
+    }
+
     private UserAccount getUser(Principal principal) {
         return userRepository.findByUsername(principal.getName())
             .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));

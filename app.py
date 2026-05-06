@@ -1,13 +1,6 @@
 """InjuryAssist — Flask application entry point."""
 
-import os
 
-from flask import Flask, redirect, url_for
-from flask_login import LoginManager
-from werkzeug.security import generate_password_hash
-
-from config import Config
-from models import db, User
 
 
 def create_app():

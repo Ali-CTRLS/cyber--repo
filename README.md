@@ -33,9 +33,21 @@ pip install -r requirements.txt
 ```
 
 **3. Run the Application**
+
+You can run the application easily using the provided batch script:
 ```bash
+run.bat
+```
+
+Alternatively, you can run it manually:
+```bash
+# Activate the virtual environment
+venv\Scripts\activate
+
+# Run the app
 python app.py
 ```
+
 *Note: The application runs on port `5001` to avoid common Windows permission conflicts on port 5000.*
 
 **4. Access the Platform**

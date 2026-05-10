@@ -1,46 +1,67 @@
-# Secure File Sharing Platform
+# InjuryAssist
 
-A Java 21 Spring Boot demo for secure file upload, download, and token-based sharing.
+**A Secure Patient-Doctor Injury Management Platform**
 
-## Features
+This project is a cybersecurity-focused medical platform built with **Python Flask**, demonstrating secure data handling, robust authentication, and file encryption at rest.
 
-- User registration and JWT authentication
-- Secure file upload/download per user
-- Token-based share links with expiration
-- H2 in-memory persistence for users, metadata, and share tokens
-- File storage on disk under `storage/`
+## 🔐 Cybersecurity Highlights
 
-## Project Structure
+This platform was built to demonstrate core security concepts for a college project:
 
-See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for a walkthrough of the folders and how the components fit together.
+- **Authentication & Secure Storage**: Passwords are cryptographically hashed and salted using Werkzeug's `PBKDF2` algorithm, protecting against rainbow table and timing attacks.
+- **Session Security**: Managed via `Flask-Login` using secure, HTTP-only session cookies.
+- **CSRF Protection**: All POST forms are strictly protected against Cross-Site Request Forgery using `Flask-WTF` validation tokens.
+- **Data-at-Rest Encryption**: Sensitive medical reports are encrypted using **AES-256-GCM** via the `cryptography` library. This ensures both confidentiality and data integrity (tamper-detection via MAC tags) of medical records stored on disk. Encryption keys are managed separately in the SQLite database.
+- **Role-based Access Control (RBAC)**: Distinct separation between `Patient` and `Doctor` blueprints prevents privilege escalation.
 
-## Run
+## 💻 Technology Stack
 
-1. Build the project:
-   ```bash
-   mvn clean package
-   ```
-2. Start the application:
-   ```bash
-   mvn spring-boot:run
-   ```
-3. Access the API at `http://localhost:8080`
+- **Backend:** Python 3.9+, Flask
+- **Database:** SQLite + Flask-SQLAlchemy (zero configuration)
+- **Frontend:** Jinja2 Templates + Tailwind CSS (via CDN)
+- **Security:** `werkzeug.security`, `flask-login`, `flask-wtf`, `cryptography`
 
-## API Endpoints
+## 🚀 Setup & Installation
 
-### Auth
-- `POST /api/auth/register` - register a user
-- `POST /api/auth/login` - login and receive JWT token
+**1. Prerequisites**
+- Python 3.9 or higher
 
-### Files
-- `POST /api/files/upload` - upload a file (multipart/form-data, header `Authorization: Bearer <token>`)
-- `GET /api/files` - list user's files
-- `GET /api/files/{id}/download` - download a file owned by the user
-- `DELETE /api/files/{id}` - delete owned file
-- `POST /api/files/share` - create a share link
-- `GET /share/{token}` - download a shared file via token
+**2. Install dependencies**
+Open your terminal in the project directory and run:
+```bash
+pip install -r requirements.txt
+```
 
-## Notes
+**3. Run the Application**
 
-- Update `security.jwt.secret` in `src/main/resources/application.properties` to a secure base64 key for production.
-- The application uses H2 in-memory database by default.
+You can run the application easily using the provided batch script:
+```bash
+run.bat
+```
+
+Alternatively, you can run it manually:
+```bash
+# Activate the virtual environment
+venv\Scripts\activate
+
+# Run the app
+python app.py
+```
+
+*Note: The application runs on port `5001` to avoid common Windows permission conflicts on port 5000.*
+
+**4. Access the Platform**
+Open your browser and navigate to: `http://127.0.0.1:5001`
+
+### 🩺 Default Credentials
+
+On the very first run, the database automatically initializes and seeds with 5 sample doctors. You can log in to the doctor dashboard using:
+- **Username:** `dr.ahmed` (or `dr.sara`, `dr.omar`)
+- **Password:** `doctor123`
+
+Patients can dynamically create their own secure accounts via the `/auth/register` page.
+
+## 📂 Project Documentation
+
+- **Development Guide:** Read `instructions.md` for the full project roadmap, implementation rules, and component structures.
+- **Security Architecture:** Check the `.puml` files in the `explination-diagram/` directory for detailed PlantUML sequence diagrams mapping out the exact authentication and AES-256-GCM encryption mechanics.

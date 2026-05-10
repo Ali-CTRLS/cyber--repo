@@ -1,9 +1,9 @@
 """Patient blueprint — dashboard and injury management."""
 
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
-from forms import InjuryForm
+from forms import InjuryForm, AppointmentForm
 from models import Injury, Appointment, Report, BodyPart, User, db
 
 patient_bp = Blueprint("patient", __name__, url_prefix="/patient")
@@ -60,7 +60,7 @@ def new_injury():
         db.session.commit()
 
         flash("Injury submitted successfully.", "success")
-        return redirect(url_for("patient.doctors"))
+        return redirect(url_for("patient.doctors", body_part=body_part.name))
 
     return render_template("patient/injury_form.html", form=form)
 
@@ -72,10 +72,70 @@ def doctors():
         from flask import abort
         abort(403)
 
-    doctors = (
-        User.query.filter_by(role="doctor", is_available=True)
-        .order_by(User.name.asc())
+    body_part_key = request.args.get("body_part")
+    selected_body_part = None
+    specialty_filter = None
+
+    if body_part_key:
+        try:
+            selected_body_part = BodyPart[body_part_key]
+            specialty_filter = BODY_PART_TO_SPECIALTY.get(selected_body_part)
+        except KeyError:
+            selected_body_part = None
+
+    query = User.query.filter_by(role="doctor", is_available=True)
+    if specialty_filter:
+        query = query.filter(User.specialty == specialty_filter)
+
+    doctors = query.order_by(User.name.asc()).all()
+
+    return render_template(
+        "patient/doctors.html",
+        doctors=doctors,
+        selected_body_part=selected_body_part,
+        specialty_filter=specialty_filter,
+    )
+
+
+@patient_bp.route("/appointment/book/<int:doctor_id>", methods=["GET", "POST"])
+@login_required
+def book_appointment(doctor_id):
+    if current_user.role != "patient":
+        from flask import abort
+        abort(403)
+
+    doctor = User.query.filter_by(id=doctor_id, role="doctor").first()
+    if not doctor:
+        from flask import abort
+        abort(404)
+
+    form = AppointmentForm()
+    if form.validate_on_submit():
+        appointment = Appointment(
+            appointment_date=form.appointment_date.data,
+            patient_id=current_user.id,
+            doctor_id=doctor.id,
+        )
+        db.session.add(appointment)
+        db.session.commit()
+
+        flash("Appointment request sent.", "success")
+        return redirect(url_for("patient.appointments"))
+
+    return render_template("patient/appointment_book.html", form=form, doctor=doctor)
+
+
+@patient_bp.route("/appointments")
+@login_required
+def appointments():
+    if current_user.role != "patient":
+        from flask import abort
+        abort(403)
+
+    appointments = (
+        Appointment.query.filter_by(patient_id=current_user.id)
+        .order_by(Appointment.appointment_date.desc())
         .all()
     )
 
-    return render_template("patient/doctors.html", doctors=doctors)
+    return render_template("patient/appointments.html", appointments=appointments)

@@ -40,3 +40,9 @@ class AppointmentForm(FlaskForm):
         format="%Y-%m-%dT%H:%M",
         validators=[DataRequired()],
     )
+
+
+class AppointmentActionForm(FlaskForm):
+    """CSRF-protected empty form for simple appointment actions."""
+
+    pass

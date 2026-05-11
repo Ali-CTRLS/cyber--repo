@@ -1,8 +1,11 @@
 """Patient blueprint — dashboard and injury management."""
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import io
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, abort
 from flask_login import login_required, current_user
 
+from encryption import decrypt_file
 from forms import InjuryForm, AppointmentForm
 from models import Injury, Appointment, Report, BodyPart, User, db
 
@@ -20,7 +23,6 @@ BODY_PART_TO_SPECIALTY = {
 @login_required
 def dashboard():
     if current_user.role != "patient":
-        from flask import abort
         abort(403)
 
     injuries = Injury.query.filter_by(patient_id=current_user.id).order_by(Injury.created_at.desc()).all()
@@ -41,7 +43,6 @@ def dashboard():
 @login_required
 def new_injury():
     if current_user.role != "patient":
-        from flask import abort
         abort(403)
 
     form = InjuryForm()
@@ -69,7 +70,6 @@ def new_injury():
 @login_required
 def doctors():
     if current_user.role != "patient":
-        from flask import abort
         abort(403)
 
     body_part_key = request.args.get("body_part")
@@ -106,7 +106,6 @@ def book_appointment(doctor_id):
 
     doctor = User.query.filter_by(id=doctor_id, role="doctor").first()
     if not doctor:
-        from flask import abort
         abort(404)
 
     form = AppointmentForm()
@@ -129,7 +128,6 @@ def book_appointment(doctor_id):
 @login_required
 def appointments():
     if current_user.role != "patient":
-        from flask import abort
         abort(403)
 
     appointments = (
@@ -139,3 +137,41 @@ def appointments():
     )
 
     return render_template("patient/appointments.html", appointments=appointments)
+
+
+@patient_bp.route("/report/<int:report_id>")
+@login_required
+def report_view(report_id):
+    if current_user.role != "patient":
+        abort(403)
+
+    report = Report.query.get_or_404(report_id)
+    if report.appointment.patient_id != current_user.id:
+        abort(403)
+
+    return render_template("patient/report_view.html", report=report)
+
+
+@patient_bp.route("/report/<int:report_id>/download")
+@login_required
+def report_download(report_id):
+    if current_user.role != "patient":
+        abort(403)
+
+    report = Report.query.get_or_404(report_id)
+    if report.appointment.patient_id != current_user.id:
+        abort(403)
+
+    if not report.encrypted_file_path:
+        flash("No file was attached to this report.", "warning")
+        return redirect(url_for("patient.report_view", report_id=report.id))
+
+    with open(report.encrypted_file_path, "rb") as encrypted_file:
+        decrypted_bytes = decrypt_file(encrypted_file.read(), report.encryption_key)
+
+    return send_file(
+        io.BytesIO(decrypted_bytes),
+        as_attachment=True,
+        download_name=f"report_{report.id}.bin",
+        mimetype="application/octet-stream",
+    )

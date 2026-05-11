@@ -2,6 +2,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField, TextAreaField, BooleanField
+from wtforms.fields import FileField
 from wtforms.fields import DateTimeLocalField
 from wtforms.validators import DataRequired, Length, EqualTo, Optional
 
@@ -46,3 +47,9 @@ class AppointmentActionForm(FlaskForm):
     """CSRF-protected empty form for simple appointment actions."""
 
     pass
+
+
+class ReportForm(FlaskForm):
+    diagnosis = TextAreaField("Diagnosis", validators=[DataRequired(), Length(min=10, max=2000)])
+    treatment_plan = TextAreaField("Treatment Plan", validators=[DataRequired(), Length(min=10, max=2000)])
+    report_file = FileField("Attach Report File (optional)", validators=[Optional()])

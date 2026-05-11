@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Report Details — InjuryAssist{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Report Details</h1>
+      <p class="text-gray-500 mt-1">View diagnosis and treatment plan</p>
+    </div>
+    <a href="{{ url_for('patient.appointments') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back to Appointments</a>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500">Doctor</p>
+        <p class="font-semibold text-gray-900">{{ report.appointment.doctor.name }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Appointment Date</p>
+        <p class="font-semibold text-gray-900">{{ report.appointment.appointment_date.strftime('%b %d, %Y at %I:%M %p') }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Report Date</p>
+        <p class="font-semibold text-gray-900">{{ report.generated_date.strftime('%b %d, %Y') }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">Diagnosis</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ report.diagnosis }}</p>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-3">Treatment Plan</h2>
+    <p class="text-gray-700 whitespace-pre-line">{{ report.treatment_plan }}</p>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    {% if report.encrypted_file_path %}
+    <a href="{{ url_for('patient.report_download', report_id=report.id) }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Download Attachment</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

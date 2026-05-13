@@ -1,0 +1,399 @@
+===============================================================
+  POWERPOINT GENERATION PROMPT — InjuryAssist Academic Presentation
+  Audience: CS Students + Faculty | Aspect Ratio: 16:9
+  Theme: Clean WHITE + Blue Accents (#2563eb)
+  Font: Poppins (Google Fonts) / Segoe UI fallback
+  Design: Minimal, structured, no dark slides, white background throughout
+===============================================================
+
+GLOBAL DESIGN RULES:
+- All slide backgrounds: #FFFFFF (pure white)
+- Primary accent: #2563eb (blue-600)
+- Light blue fill: #dbeafe (blue-100) for info boxes / highlights
+- Dark blue text: #1e40af for headings
+- Body text: #111827 (near-black)
+- Muted labels: #6b7280 (gray-500)
+- Card borders: #e5e7eb (gray-200), blue borders #2563eb for emphasis
+- Dividers: subtle gray (#e5e7eb), 1pt
+- Icons: simple line-style, blue (#2563eb)
+- Max 3–5 bullets per slide — NO dense paragraphs
+- Use Poppins (Google Fonts import) or Segoe UI as fallback
+- Consistent padding: 60px sides, 40px top/bottom content margin
+- Slide numbering bottom-right, small, gray
+
+===============================================================
+SLIDE 1 — TITLE SLIDE
+===============================================================
+Layout: Centered, full-width header block
+
+TOP SECTION (blue bar, #2563eb, ~30% slide height):
+  - Large icon: 🏥 (or medical cross SVG, white, 48px)
+  - Title: "InjuryAssist"
+    Font: Poppins Bold, 52px, white (#FFFFFF)
+  - Subtitle: "Secure Patient-Doctor Injury Management Platform"
+    Font: Poppins SemiBold, 22px, white, opacity 90%
+
+BOTTOM SECTION (white background):
+  - Tagline: "Security-first healthcare workflows"
+    Font: Poppins Italic, 18px, #2563eb
+  - Thin blue horizontal rule (2pt, #2563eb)
+  - Two-column metadata row:
+    Left:  "🎓 CS Academic Project — Cybersecurity Focus"
+    Right: "📅 May 2026"
+    Font: Poppins Regular, 13px, #6b7280
+  - Bottom strip: small shield icon + "AES-256-GCM · Flask-Login · CSRF Protection"
+    Font: 12px, #6b7280, center-aligned
+
+===============================================================
+SLIDE 2 — PROBLEM & GOAL
+===============================================================
+Layout: Split card layout (left problem / right goals)
+
+SLIDE HEADING (top, left-aligned):
+  "🩺 Problem & Goal"
+  Font: Poppins Bold, 30px, #1e40af
+  Underline accent: 3px solid #2563eb, width 60px
+
+LEFT CARD (white, blue border #2563eb, shadow):
+  Header: "🔴 The Problem"  (Poppins SemiBold, 16px, #2563eb)
+  Bullets (13px, #111827, 1.6 line-height):
+  • Patient–doctor injury workflows lack secure digital infrastructure
+  • Medical report files stored or transmitted without encryption
+  • No clear role separation between patient and doctor interfaces
+  • CSRF and session vulnerabilities common in academic health apps
+
+RIGHT CARD (white, blue border, shadow):
+  Header: "🎯 Core Goals"  (Poppins SemiBold, 16px, #2563eb)
+  Bullets:
+  • Secure data at rest using AES-256-GCM encryption
+  • Role-based access control (Patient vs. Doctor flows)
+  • Clean, trustworthy UI with minimal complexity
+  • Academic-scoped: 15h budget, real security practices applied
+
+BOTTOM STRIP (light blue #dbeafe, rounded):
+  "Scope: 2nd-year CS project · 15h total · Python Flask stack"
+  Font: 12px, #1e40af, centered
+
+===============================================================
+SLIDE 3 — SYSTEM OVERVIEW
+===============================================================
+Layout: Architecture diagram style — horizontal tier boxes
+
+SLIDE HEADING:
+  "⚙️ System Overview"
+  Font: Poppins Bold, 30px, #1e40af
+
+ARCHITECTURE TIERS (top-to-bottom boxes connected by arrows):
+
+┌─────────────────────────────────────────────────┐
+│  FRONTEND LAYER                                  │
+│  Jinja2 Templates + Tailwind CSS (CDN)           │
+│  White/Blue theme · Flash messages · CSRF tokens │
+└─────────────────────────────────────────────────┘
+                        ↓  (blue arrow)
+┌─────────────────────────────────────────────────┐
+│  BACKEND LAYER                                   │
+│  Python Flask · Blueprint architecture           │
+│  auth.py · patient.py · doctor.py                │
+└─────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────┐
+│  DATA LAYER                                      │
+│  SQLite + Flask-SQLAlchemy                       │
+│  Models: User · Injury · Appointment · Report    │
+└─────────────────────────────────────────────────┘
+                        ↓
+┌──────────────────────┐   ┌─────────────────────┐
+│  FILE STORAGE        │   │  SECURITY SERVICES   │
+│  storage/reports/    │   │  Werkzeug · Flask-WTF│
+│  *.enc (encrypted)   │   │  Flask-Login · AESGCM│
+└──────────────────────┘   └─────────────────────┘
+
+RIGHT SIDE — ROLE BADGES:
+  [👤 Patient]   →  Register · Submit Injury · Book Appointment · Download Report
+  [🩺 Doctor]    →  Pre-seeded · View Appointments · Confirm · Write Encrypted Report
+  Font: 12px, #111827, icon-left layout
+
+===============================================================
+SLIDE 4 — KEY FEATURES (IMPLEMENTED)
+===============================================================
+Layout: 2×3 icon-card grid
+
+SLIDE HEADING:
+  "✅ Key Features — What's Built"
+  Font: Poppins Bold, 30px, #1e40af
+
+FEATURE CARDS (white background, blue border #2563eb, rounded 8px, shadow-sm):
+
+Card 1: 🔐 Patient Auth
+  "Registration & Login"
+  • Flask-WTF form validation
+  • Werkzeug password hashing
+  • Session via Flask-Login
+
+Card 2: 🩹 Injury Submission
+  "Submit & Track Injuries"
+  • Body part dropdown (Thigh/Knee/Ankle/Shoulder)
+  • Critical flag + description
+  • Auto-recommendation generated
+
+Card 3: 🔍 Doctor Matching
+  "Specialty-Based Matching"
+  • Body part → specialty dictionary
+  • Filters available doctors
+  • Patient selects and books
+
+Card 4: 📅 Appointment Flow
+  "4-Status Lifecycle"
+  • PENDING → CONFIRMED → COMPLETED → CANCELLED
+  • Doctor confirms/cancels
+  • Guard: only PENDING can be confirmed
+
+Card 5: 📄 Report Generation
+  "Doctor Writes Reports"
+  • Diagnosis + Treatment Plan
+  • Optional file upload
+  • Appointment → COMPLETED on submit
+
+Card 6: 🔒 Encrypted Download
+  "Patient Access"
+  • Decrypt on-the-fly
+  • RBAC: only owning patient
+  • 403 on unauthorized access
+
+===============================================================
+SLIDE 5 — SECURITY ARCHITECTURE (CY FOCUS)
+===============================================================
+Layout: Left column (security layers) + Right column (CIAAA badges)
+
+SLIDE HEADING:
+  "🔐 Security Architecture"
+  Font: Poppins Bold, 30px, #1e40af
+
+LEFT COLUMN — SECURITY LAYERS (stacked blue-bordered rows):
+
+  [🔑] Password Hashing
+       Werkzeug generate_password_hash — PBKDF2 default
+       Stored as hash; never plaintext
+
+  [🍪] Session-Based Auth
+       Flask-Login · @login_required decorator
+       Role-aware redirect (_redirect_by_role)
+
+  [🛡️] CSRF Protection
+       Flask-WTF on all POST forms
+       form.hidden_tag() in every template
+
+  [🔒] AES-256-GCM File Encryption
+       cryptography.hazmat AESGCM · 12-byte random nonce
+       Nonce + ciphertext stored in *.enc file
+
+  [🚦] RBAC Enforcement
+       role check (current_user.role != "doctor/patient") → abort(403)
+       Report access: patient_id ownership verified before serving
+
+RIGHT COLUMN — CIAAA BADGES (rounded pill labels, blue fill):
+
+  ● Confidentiality  → AES-256-GCM encryption + RBAC
+  ● Integrity        → GCM authentication tag (tampering = decrypt failure)
+  ● Availability     → Flask dev server + SQLite always accessible
+  ● Authentication   → Flask-Login + Werkzeug password hashing
+  ● Authorization    → Role checks + ownership guards on all routes
+
+===============================================================
+SLIDE 6 — ENCRYPTION FLOW (VISUAL)
+===============================================================
+Layout: Horizontal flow diagram with 3 stages + code snippet
+
+SLIDE HEADING:
+  "🔒 Encryption Flow — AES-256-GCM"
+  Font: Poppins Bold, 30px, #1e40af
+
+FLOW DIAGRAM (left → right, connected by blue arrows):
+
+STAGE 1 — UPLOAD (blue card):
+  Icon: 📤
+  Label: "Doctor Uploads File"
+  Sub: "Raw bytes read from form.report_file"
+
+  ↓ arrow label: "generate_key() → base64 AES-256 key"
+
+STAGE 2 — ENCRYPT (blue card, darker #1e40af):
+  Icon: 🔐
+  Label: "Encrypt"
+  Sub: "os.urandom(12) → nonce"
+       "AESGCM(key).encrypt(nonce, data)"
+       "Output: nonce (12B) + ciphertext"
+
+  ↓ arrow label: "key → DB · ciphertext → disk"
+
+STAGE 3 — STORE (blue card):
+  Icon: 💾
+  Label: "Stored Separately"
+  Sub: "Key (base64) → Report.encryption_key in SQLite"
+       "Encrypted file → storage/reports/{uuid}.enc"
+
+DOWNLOAD REVERSE FLOW (below, dashed arrow ← direction):
+  Patient Requests → Read *.enc from disk
+  → decrypt_file(encrypted_data, key_b64)
+  → nonce = data[:12] · ciphertext = data[12:]
+  → AESGCM.decrypt → raw bytes served via send_file()
+
+CALLOUT BOX (light blue #dbeafe):
+  "⚠️ GCM Integrity Tag: Any tampering with ciphertext causes
+   decryption to FAIL — no silent data corruption"
+
+===============================================================
+SLIDE 7 — EDGE CASES & HANDLING
+===============================================================
+Layout: Two-column table card
+
+SLIDE HEADING:
+  "⚠️ Edge Cases & Error Handling"
+  Font: Poppins Bold, 30px, #1e40af
+
+TABLE (white background, blue header row, alternating light-gray rows):
+
+  | Scenario                           | Handling                              |
+  |------------------------------------|---------------------------------------|
+  | Invalid login credentials          | flash("Invalid username or password") |
+  | Unauthorized report access         | abort(403) — HTTP 403 Forbidden       |
+  | Report before CONFIRMED status     | flash warning → redirect detail page  |
+  | Report already exists              | flash warning → no duplicate created  |
+  | No file attached to report         | flash warning on download attempt     |
+  | Cancel already-cancelled appt      | flash warning — no state change       |
+  | Confirm non-PENDING appointment    | flash warning — guard in confirm route|
+  | Wrong role accesses doctor route   | abort(403) enforced on every route    |
+
+NOTE BOX (bottom, light blue):
+  "All guards implemented via explicit if-checks before DB mutations.
+   No silent failures — every edge case surfaces a user-visible message."
+
+===============================================================
+SLIDE 8 — CIAAA ALIGNMENT
+===============================================================
+Layout: Center table + callout box
+
+SLIDE HEADING:
+  "🏛️ CIAAA Security Principle Alignment"
+  Font: Poppins Bold, 30px, #1e40af
+
+MAPPING TABLE:
+
+  | Principle        | Implementation in InjuryAssist                              |
+  |------------------|--------------------------------------------------------------|
+  | Confidentiality  | AES-256-GCM encrypts reports at rest; RBAC restricts access |
+  | Integrity        | GCM auth tag detects any tampering; SQLAlchemy parameterized |
+  | Availability     | Flask + SQLite; no external dependencies; instant startup    |
+  | Authentication   | Flask-Login sessions + Werkzeug PBKDF2 password hashing     |
+  | Authorization    | role checks + appointment ownership before every data access |
+
+CALLOUT BOX (blue border, white bg):
+  "📖 CIAAA Reference:"
+  "The CIAAA model extends the classic CIA triad by adding Authentication
+   and Authorization as explicit pillars for access control.
+   Reference: NIST SP 800-53 — https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final"
+  Font: 12px, #6b7280, italic
+
+BADGE ROW (5 pill badges, blue fill, white text):
+  [Confidentiality] [Integrity] [Availability] [Authentication] [Authorization]
+
+===============================================================
+SLIDE 9 — DEMO FLOW (STORYBOARD CARDS)
+===============================================================
+Layout: 7 horizontal sequential cards with arrows
+
+SLIDE HEADING:
+  "🎬 Demo Flow — End-to-End Walkthrough"
+  Font: Poppins Bold, 30px, #1e40af
+
+STORYBOARD CARDS (white bg, blue border #2563eb, 8px radius, numbered):
+
+  [1] REGISTER
+      Icon: 👤
+      "Patient registers via /auth/register
+       Werkzeug hashes password on save"
+
+      →
+
+  [2] SUBMIT INJURY
+      Icon: 🩹
+      "Patient fills injury form
+       Body part + description + critical flag"
+
+      →
+
+  [3] MATCH DOCTORS
+      Icon: 🔍
+      "System maps body_part → specialty
+       Filtered doctor list displayed"
+
+      →
+
+  [4] BOOK APPOINTMENT
+      Icon: 📅
+      "Patient selects doctor + date
+       Status: PENDING created in DB"
+
+      →
+
+  [5] DOCTOR CONFIRMS
+      Icon: ✅
+      "Doctor views dashboard
+       Clicks Confirm → status: CONFIRMED"
+
+      →
+
+  [6] REPORT ENCRYPTED
+      Icon: 🔐
+      "Doctor writes report + uploads file
+       AES-256-GCM encrypts file → *.enc stored
+       Key saved to DB · status: COMPLETED"
+
+      →
+
+  [7] PATIENT DOWNLOADS
+      Icon: 📥
+      "Patient views report details
+       Clicks Download → decrypt on-the-fly
+       Raw file served via send_file()"
+
+===============================================================
+SLIDE 10 — CONCLUSION
+===============================================================
+Layout: Summary card (left) + Future Ideas card (right)
+
+SLIDE HEADING:
+  "🎯 Conclusion"
+  Font: Poppins Bold, 30px, #1e40af
+
+LEFT CARD — "What We Built" (blue border):
+  • Security-first Flask platform in ~15 hours
+  • AES-256-GCM report encryption fully implemented
+  • Session auth + CSRF protection on all forms
+  • RBAC enforced at every route and data access point
+  • Clean white + blue UI, mobile-friendly Tailwind layout
+  • CIAAA principles mapped to every implemented feature
+
+RIGHT CARD — "Future Ideas" (gray border, clearly labeled "🚀 Future Scope"):
+  [Label badge: "NOT YET IMPLEMENTED"]
+  • KMS (Key Management Service) for centralized key storage
+  • Audit logs for all security-sensitive actions
+  • Enhanced error pages (custom 404 / 500 handlers)
+  • Email notifications for appointment status changes
+  • Doctor registration workflow (currently pre-seeded only)
+
+BOTTOM STRIP (blue background):
+  Font: Poppins Bold, 18px, white
+  "InjuryAssist — A security-focused academic platform demonstrating
+   real-world Flask security patterns for healthcare workflows."
+  + small: "🔐 AES-256-GCM · Flask-Login · Flask-WTF · Werkzeug · RBAC"
+
+===============================================================
+END OF PROMPT
+Tool: Use any AI PowerPoint generator (e.g., Gamma.app, Beautiful.ai,
+Canva AI, or python-pptx script) with the above spec.
+All claims verified against actual codebase:
+  encryption.py · models.py · forms.py
+  blueprints/auth.py · blueprints/patient.py · blueprints/doctor.py
+===============================================================

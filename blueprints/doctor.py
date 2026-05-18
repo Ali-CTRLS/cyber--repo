@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, abort, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 
 from encryption import generate_key, encrypt_file
 from forms import AppointmentActionForm, ReportForm
@@ -143,9 +144,14 @@ def create_report(appointment_id):
     if form.validate_on_submit():
         encrypted_path = None
         encryption_key = generate_key()
+        original_filename = None
+        original_mimetype = None
 
         uploaded_file = form.report_file.data
         if uploaded_file and uploaded_file.filename:
+            safe_name = secure_filename(uploaded_file.filename)
+            original_filename = safe_name or "attachment.bin"
+            original_mimetype = uploaded_file.mimetype or "application/octet-stream"
             encrypted_name = f"{uuid.uuid4().hex}.enc"
             encrypted_path = os.path.join(current_app.config["UPLOAD_FOLDER"], encrypted_name)
 
@@ -158,6 +164,8 @@ def create_report(appointment_id):
             treatment_plan=form.treatment_plan.data,
             encrypted_file_path=encrypted_path,
             encryption_key=encryption_key,
+            original_filename=original_filename,
+            original_mimetype=original_mimetype,
             appointment_id=appointment.id,
         )
         db.session.add(report)

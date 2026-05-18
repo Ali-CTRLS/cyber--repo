@@ -3,6 +3,7 @@
 import os
 from flask import Flask, redirect, url_for, render_template
 from flask_login import LoginManager
+from sqlalchemy import text
 from werkzeug.security import generate_password_hash
 
 from config import Config
@@ -54,6 +55,7 @@ def create_app():
     # Create tables and seed doctors on first run
     with app.app_context():
         db.create_all()
+        _ensure_report_file_columns()
         _seed_doctors()
 
     return app
@@ -152,6 +154,23 @@ def _seed_doctors():
 
     db.session.commit()
     print(f"[SEED] Created {len(doctors)} sample doctors.")
+
+
+def _ensure_report_file_columns():
+    """Add report metadata columns if missing (safe for existing SQLite DB)."""
+    try:
+        rows = db.session.execute(text("PRAGMA table_info(reports)"))
+        existing = {row[1] for row in rows}
+
+        if "original_filename" not in existing:
+            db.session.execute(text("ALTER TABLE reports ADD COLUMN original_filename VARCHAR(255)"))
+        if "original_mimetype" not in existing:
+            db.session.execute(text("ALTER TABLE reports ADD COLUMN original_mimetype VARCHAR(100)"))
+
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        print(f"[MIGRATE] Skipped report metadata columns: {exc}")
 
 
 # Run the app

@@ -352,9 +352,11 @@ def report_download(report_id):
     with open(report.encrypted_file_path, "rb") as encrypted_file:
         decrypted_bytes = decrypt_file(encrypted_file.read(), report.encryption_key)
 
+    download_name = report.original_filename or f"report_{report.id}.bin"
+    mimetype = report.original_mimetype or "application/octet-stream"
     return send_file(
         io.BytesIO(decrypted_bytes),
         as_attachment=True,
-        download_name=f"report_{report.id}.bin",
-        mimetype="application/octet-stream",
+        download_name=download_name,
+        mimetype=mimetype,
     )

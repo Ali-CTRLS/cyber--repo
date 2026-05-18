@@ -5,7 +5,13 @@
 <div class="fade-in">
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Submit New Injury</h1>
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-900">Submit New Injury</h1>
+      </div>
       <p class="text-gray-500 mt-1">Tell us what happened so we can match you with the right doctor</p>
     </div>
     <a href="{{ url_for('patient.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back to

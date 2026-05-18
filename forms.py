@@ -3,7 +3,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField, TextAreaField, BooleanField
 from wtforms.fields import FileField
-from wtforms.fields import DateTimeLocalField
 from wtforms.validators import DataRequired, Length, EqualTo, Optional
 
 
@@ -36,11 +35,7 @@ class InjuryForm(FlaskForm):
 
 
 class AppointmentForm(FlaskForm):
-    appointment_date = DateTimeLocalField(
-        "Appointment Date",
-        format="%Y-%m-%dT%H:%M",
-        validators=[DataRequired()],
-    )
+    appointment_slot = SelectField("Appointment Time", validators=[DataRequired()])
 
 
 class AppointmentActionForm(FlaskForm):

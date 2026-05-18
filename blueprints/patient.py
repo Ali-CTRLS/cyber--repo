@@ -1,6 +1,8 @@
 """Patient blueprint — dashboard and injury management."""
 
 import io
+from datetime import datetime, timedelta, time
+from typing import Optional
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, abort
 from flask_login import login_required, current_user
@@ -17,6 +19,93 @@ BODY_PART_TO_SPECIALTY = {
     BodyPart.ANKLE: "Orthopedic - Foot & Ankle",
     BodyPart.SHOULDER: "Orthopedic - Upper Limb",
 }
+
+DAY_TO_INDEX = {
+    "Mon": 0,
+    "Tue": 1,
+    "Wed": 2,
+    "Thu": 3,
+    "Fri": 4,
+    "Sat": 5,
+    "Sun": 6,
+}
+
+
+def _parse_time(value: str) -> Optional[time]:
+    parts = value.split(":")
+    if len(parts) != 2:
+        return None
+    try:
+        return time(hour=int(parts[0]), minute=int(parts[1]))
+    except ValueError:
+        return None
+
+
+def _parse_availability_slot(slot_text: str):
+    if not slot_text:
+        return None
+
+    parts = slot_text.split()
+    if len(parts) < 2:
+        return None
+
+    day_part = parts[0].strip()
+    time_part = parts[1].strip()
+
+    if "-" in day_part:
+        start_day, end_day = day_part.split("-", 1)
+    else:
+        start_day = end_day = day_part
+
+    if "-" not in time_part:
+        return None
+
+    start_time, end_time = time_part.split("-", 1)
+    if start_day not in DAY_TO_INDEX or end_day not in DAY_TO_INDEX:
+        return None
+
+    start_clock = _parse_time(start_time)
+    end_clock = _parse_time(end_time)
+    if not start_clock or not end_clock:
+        return None
+
+    return start_day, end_day, start_clock, end_clock
+
+
+def _day_in_range(day_idx: int, start_idx: int, end_idx: int) -> bool:
+    if start_idx <= end_idx:
+        return start_idx <= day_idx <= end_idx
+    return day_idx >= start_idx or day_idx <= end_idx
+
+
+def _build_available_slots(slot_text: str, days_ahead: int = 21, interval_minutes: int = 30):
+    parsed = _parse_availability_slot(slot_text)
+    if not parsed:
+        return []
+
+    start_day, end_day, start_clock, end_clock = parsed
+    start_idx = DAY_TO_INDEX[start_day]
+    end_idx = DAY_TO_INDEX[end_day]
+
+    if (end_clock.hour, end_clock.minute) <= (start_clock.hour, start_clock.minute):
+        return []
+
+    now = datetime.now()
+    slots = []
+    for offset in range(days_ahead):
+        day_date = now.date() + timedelta(days=offset)
+        if not _day_in_range(day_date.weekday(), start_idx, end_idx):
+            continue
+
+        start_dt = datetime.combine(day_date, start_clock)
+        end_dt = datetime.combine(day_date, end_clock)
+        current = start_dt
+        while current < end_dt:
+            if current >= now + timedelta(minutes=15):
+                slots.append(current)
+            current += timedelta(minutes=interval_minutes)
+
+    return slots
 
 
 @patient_bp.route("/dashboard")
@@ -108,10 +197,26 @@ def book_appointment(doctor_id):
     if not doctor:
         abort(404)
 
+    slots = _build_available_slots(doctor.availability_slot)
+    slot_choices = [("", "Select a time...")]
+    slot_choices += [
+        (slot.strftime("%Y-%m-%dT%H:%M"), slot.strftime("%a, %b %d • %I:%M %p"))
+        for slot in slots
+    ]
+
     form = AppointmentForm()
+    form.appointment_slot.choices = slot_choices
+
     if form.validate_on_submit():
+        allowed_values = {value for value, _ in slot_choices if value}
+        selected_value = form.appointment_slot.data
+        if selected_value not in allowed_values:
+            flash("Selected time is not available. Please choose another slot.", "error")
+            return redirect(request.url)
+
+        selected_dt = datetime.strptime(selected_value, "%Y-%m-%dT%H:%M")
         appointment = Appointment(
-            appointment_date=form.appointment_date.data,
+            appointment_date=selected_dt,
             patient_id=current_user.id,
             doctor_id=doctor.id,
         )
@@ -121,7 +226,14 @@ def book_appointment(doctor_id):
         flash("Appointment request sent.", "success")
         return redirect(url_for("patient.appointments"))
 
-    return render_template("patient/appointment_book.html", form=form, doctor=doctor)
+    return render_template(
+        "patient/appointment_book.html",
+        form=form,
+        doctor=doctor,
+        has_slots=bool(slots),
+        slot_window_days=21,
+        slot_interval_minutes=30,
+    )
 
 
 @patient_bp.route("/appointments")

@@ -2,6 +2,7 @@
 
 import os
 import uuid
+from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, abort, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
@@ -25,8 +26,14 @@ def dashboard():
         .all()
     )
 
+    cancel_allowed = {appt.id: _cancel_allowed(appt) for appt in appointments}
     action_form = AppointmentActionForm()
-    return render_template("doctor/dashboard.html", appointments=appointments, action_form=action_form)
+    return render_template(
+        "doctor/dashboard.html",
+        appointments=appointments,
+        action_form=action_form,
+        cancel_allowed=cancel_allowed,
+    )
 
 
 def _get_doctor_appointment(appointment_id):
@@ -34,6 +41,14 @@ def _get_doctor_appointment(appointment_id):
     if not appointment:
         abort(404)
     return appointment
+
+
+def _cancel_allowed(appointment) -> bool:
+    if appointment.status in (AppointmentStatus.CANCELLED, AppointmentStatus.COMPLETED):
+        return False
+
+    now = datetime.now()
+    return appointment.appointment_date > now + timedelta(hours=24)
 
 
 @doctor_bp.route("/appointment/<int:appointment_id>")
@@ -55,6 +70,7 @@ def appointment_detail(appointment_id):
         appointment=appointment,
         latest_injury=latest_injury,
         action_form=action_form,
+        cancel_allowed=_cancel_allowed(appointment),
     )
 
 
@@ -92,6 +108,14 @@ def cancel_appointment(appointment_id):
     appointment = _get_doctor_appointment(appointment_id)
     if appointment.status == AppointmentStatus.CANCELLED:
         flash("Appointment is already cancelled.", "warning")
+        return redirect(url_for("doctor.appointment_detail", appointment_id=appointment.id))
+
+    if appointment.status == AppointmentStatus.COMPLETED:
+        flash("Completed appointments cannot be cancelled.", "warning")
+        return redirect(url_for("doctor.appointment_detail", appointment_id=appointment.id))
+
+    if not _cancel_allowed(appointment):
+        flash("Cancellations must be at least 24 hours before the appointment.", "error")
         return redirect(url_for("doctor.appointment_detail", appointment_id=appointment.id))
 
     appointment.status = AppointmentStatus.CANCELLED

@@ -93,12 +93,16 @@
       <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Confirm
         Appointment</button>
     </form>
+    {% if cancel_allowed %}
     <form method="post" action="{{ url_for('doctor.cancel_appointment', appointment_id=appointment.id) }}"
       onsubmit="return confirm('Cancel this appointment?');">
       {{ action_form.hidden_tag() }}
       <button type="submit" class="border border-red-200 text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg">Cancel
         Appointment</button>
     </form>
+    {% else %}
+    <span class="text-xs text-gray-400">Cancel locked (&lt;24h)</span>
+    {% endif %}
     {% endif %}
     {% if appointment.status.value == 'Confirmed' and not appointment.report %}
     <a href="{{ url_for('doctor.create_report', appointment_id=appointment.id) }}"

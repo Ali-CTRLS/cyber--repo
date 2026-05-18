@@ -34,6 +34,10 @@ class InjuryForm(FlaskForm):
     is_critical = BooleanField("This is a critical/severe injury")
 
 
+class InjuryCriticalForm(FlaskForm):
+    is_critical = BooleanField("This is a critical/severe injury")
+
+
 class AppointmentForm(FlaskForm):
     appointment_slot = SelectField("Appointment Time", validators=[DataRequired()])
 

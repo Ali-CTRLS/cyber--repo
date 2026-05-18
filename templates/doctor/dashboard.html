@@ -70,12 +70,16 @@
                         <button type="submit"
                             class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg">Confirm</button>
                     </form>
+                    {% if cancel_allowed.get(appt.id) %}
                     <form method="post" action="{{ url_for('doctor.cancel_appointment', appointment_id=appt.id) }}"
                         onsubmit="return confirm('Cancel this appointment?');">
                         {{ action_form.hidden_tag() }}
                         <button type="submit"
                             class="text-sm border border-red-200 text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg">Cancel</button>
                     </form>
+                    {% else %}
+                    <span class="text-xs text-gray-400">Cancel locked (&lt;24h)</span>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>

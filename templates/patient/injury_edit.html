@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Edit Injury — InjuryAssist{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-900">Edit Injury</h1>
+      </div>
+      <p class="text-gray-500 mt-1">Update the critical status of your injury</p>
+    </div>
+    <a href="{{ url_for('patient.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back to
+      Dashboard</a>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-2xl shadow-sm p-8 max-w-2xl">
+    <div class="mb-6">
+      <p class="text-sm text-gray-500">Body Part</p>
+      <p class="font-semibold text-gray-900">{{ injury.body_part.value }}</p>
+      <p class="text-sm text-gray-500 mt-3">Description</p>
+      <p class="text-gray-900">{{ injury.athlete_description }}</p>
+    </div>
+
+    <form method="POST" class="space-y-5">
+      {{ form.hidden_tag() }}
+
+      <div class="flex items-center gap-3">
+        {{ form.is_critical(class="h-4 w-4 text-blue-600 border-gray-300 rounded", id="is_critical") }}
+        <label for="is_critical" class="text-sm text-gray-700">This is a critical/severe injury</label>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

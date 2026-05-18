@@ -8,8 +8,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 
 from encryption import decrypt_file
-from forms import InjuryForm, AppointmentForm
-from models import Injury, Appointment, Report, BodyPart, User, db
+from forms import InjuryForm, InjuryCriticalForm, AppointmentForm, AppointmentActionForm
+from models import Injury, Appointment, AppointmentStatus, Report, BodyPart, User, db
 
 patient_bp = Blueprint("patient", __name__, url_prefix="/patient")
 
@@ -108,6 +108,14 @@ def _build_available_slots(slot_text: str, days_ahead: int = 21, interval_minute
     return slots
 
 
+def _cancel_allowed(appointment) -> bool:
+    if appointment.status in (AppointmentStatus.CANCELLED, AppointmentStatus.COMPLETED):
+        return False
+
+    now = datetime.now()
+    return appointment.appointment_date > now + timedelta(hours=24)
+
+
 @patient_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -153,6 +161,26 @@ def new_injury():
         return redirect(url_for("patient.doctors", body_part=body_part.name))
 
     return render_template("patient/injury_form.html", form=form)
+
+
+@patient_bp.route("/injury/<int:injury_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_injury(injury_id):
+    if current_user.role != "patient":
+        abort(403)
+
+    injury = Injury.query.filter_by(id=injury_id, patient_id=current_user.id).first()
+    if not injury:
+        abort(404)
+
+    form = InjuryCriticalForm(is_critical=injury.is_critical)
+    if form.validate_on_submit():
+        injury.is_critical = form.is_critical.data
+        db.session.commit()
+        flash("Injury updated successfully.", "success")
+        return redirect(url_for("patient.dashboard"))
+
+    return render_template("patient/injury_edit.html", form=form, injury=injury)
 
 
 @patient_bp.route("/doctors")
@@ -248,7 +276,46 @@ def appointments():
         .all()
     )
 
-    return render_template("patient/appointments.html", appointments=appointments)
+    cancel_allowed = {appt.id: _cancel_allowed(appt) for appt in appointments}
+    action_form = AppointmentActionForm()
+    return render_template(
+        "patient/appointments.html",
+        appointments=appointments,
+        cancel_allowed=cancel_allowed,
+        action_form=action_form,
+    )
+
+
+@patient_bp.route("/appointment/<int:appointment_id>/cancel", methods=["POST"])
+@login_required
+def cancel_appointment(appointment_id):
+    if current_user.role != "patient":
+        abort(403)
+
+    form = AppointmentActionForm()
+    if not form.validate_on_submit():
+        abort(400)
+
+    appointment = Appointment.query.filter_by(id=appointment_id, patient_id=current_user.id).first()
+    if not appointment:
+        abort(404)
+
+    if appointment.status == AppointmentStatus.CANCELLED:
+        flash("Appointment is already cancelled.", "warning")
+        return redirect(url_for("patient.appointments"))
+
+    if appointment.status == AppointmentStatus.COMPLETED:
+        flash("Completed appointments cannot be cancelled.", "warning")
+        return redirect(url_for("patient.appointments"))
+
+    if not _cancel_allowed(appointment):
+        flash("Cancellations must be at least 24 hours before the appointment.", "error")
+        return redirect(url_for("patient.appointments"))
+
+    appointment.status = AppointmentStatus.CANCELLED
+    db.session.commit()
+    flash("Appointment cancelled.", "success")
+    return redirect(url_for("patient.appointments"))
 
 
 @patient_bp.route("/report/<int:report_id>")

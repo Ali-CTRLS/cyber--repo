@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment — InjuryAssist{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Book Appointment</h1>
+      <p class="text-gray-500 mt-1">Request a time with your selected doctor</p>
+    </div>
+    <a href="{{ url_for('patient.doctors') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back to
+      Doctors</a>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-2xl shadow-sm p-8 max-w-2xl">
+    <div class="mb-6">
+      <p class="text-lg font-semibold text-gray-900">Dr. {{ doctor.name }}</p>
+      <p class="text-sm text-gray-500">{{ doctor.specialty or "General Practice" }}</p>
+      {% if doctor.availability_slot %}
+      <p class="text-sm text-gray-500 mt-1">Available: {{ doctor.availability_slot }} ({{ slot_interval_minutes }}-min slots)</p>
+      {% endif %}
+    </div>
+
+    <form method="POST" class="space-y-5">
+      {{ form.hidden_tag() }}
+
+      <div>
+        <label for="appointment_slot" class="block text-sm font-medium text-gray-700 mb-1">Appointment Time *</label>
+        <select id="appointment_slot" name="appointment_slot"
+          class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg px-4 py-2.5 text-gray-900 outline-none transition bg-white"
+          {% if not has_slots %}disabled{% endif %}>
+          {% for value, label in form.appointment_slot.choices %}
+          <option value="{{ value }}" {% if form.appointment_slot.data == value %}selected{% endif %} {% if value == "" %}disabled{% endif %}>
+            {{ label }}
+          </option>
+          {% endfor %}
+        </select>
+        {% for error in form.appointment_slot.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+        {% if has_slots %}
+        <p class="text-xs text-gray-400 mt-2">Showing available slots for the next {{ slot_window_days }} days.</p>
+        {% else %}
+        <p class="text-xs text-red-500 mt-2">No available slots in the next {{ slot_window_days }} days.</p>
+        {% endif %}
+      </div>
+
+      <div class="pt-2">
+        <button type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          {% if not has_slots %}disabled{% endif %}>
+          Request Appointment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

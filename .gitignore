@@ -10,3 +10,17 @@ storage/
 instructions.md
 example.md
 requriments.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+
+# Flask instance (SQLite DB lives here)
+instance/
+*.db

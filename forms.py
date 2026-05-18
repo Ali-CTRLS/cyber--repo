@@ -2,6 +2,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField, TextAreaField, BooleanField
+from wtforms.fields import FileField
 from wtforms.validators import DataRequired, Length, EqualTo, Optional
 
 
@@ -31,3 +32,23 @@ class InjuryForm(FlaskForm):
     )
     athlete_description = TextAreaField("Describe your injury", validators=[DataRequired(), Length(min=10, max=1000)])
     is_critical = BooleanField("This is a critical/severe injury")
+
+
+class InjuryCriticalForm(FlaskForm):
+    is_critical = BooleanField("This is a critical/severe injury")
+
+
+class AppointmentForm(FlaskForm):
+    appointment_slot = SelectField("Appointment Time", validators=[DataRequired()])
+
+
+class AppointmentActionForm(FlaskForm):
+    """CSRF-protected empty form for simple appointment actions."""
+
+    pass
+
+
+class ReportForm(FlaskForm):
+    diagnosis = TextAreaField("Diagnosis", validators=[DataRequired(), Length(min=10, max=2000)])
+    treatment_plan = TextAreaField("Treatment Plan", validators=[DataRequired(), Length(min=10, max=2000)])
+    report_file = FileField("Attach Report File (optional)", validators=[Optional()])

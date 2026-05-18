@@ -5,7 +5,13 @@
 <div class="fade-in">
     <!-- Header -->
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Welcome back, {{ current_user.name }} 👋</h1>
+        <div class="flex items-center gap-2">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 7h18M5 7v10a2 2 0 002 2h10a2 2 0 002-2V7" />
+            </svg>
+            <h1 class="text-2xl font-bold text-gray-900">Welcome back, {{ current_user.name }} 👋</h1>
+        </div>
         <p class="text-gray-500 mt-1">Here's an overview of your injury management</p>
     </div>
 
@@ -17,7 +23,7 @@
                 <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <div>
@@ -33,7 +39,7 @@
                 <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <div>
@@ -49,7 +55,7 @@
                 <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <div>
@@ -63,42 +69,53 @@
     <!-- Recent Injuries -->
     <div class="bg-white border border-blue-200 rounded-xl shadow-sm overflow-hidden mb-8">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Recent Injuries</h2>
-            <!-- New Injury button will be added in Day 2 -->
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h2 class="text-lg font-semibold text-gray-900">Recent Injuries</h2>
+            </div>
+            <a href="{{ url_for('patient.new_injury') }}"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                + New Injury
+            </a>
         </div>
         <div class="divide-y divide-gray-100">
             {% if injuries %}
-                {% for injury in injuries[:5] %}
-                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
-                    <div class="flex items-center gap-3">
-                        <span class="text-2xl">
-                            {% if injury.body_part.value == 'Knee' %}🦵
-                            {% elif injury.body_part.value == 'Shoulder' %}💪
-                            {% elif injury.body_part.value == 'Ankle' %}🦶
-                            {% else %}🦴{% endif %}
-                        </span>
-                        <div>
-                            <p class="font-medium text-gray-900">{{ injury.body_part.value }}</p>
-                            <p class="text-sm text-gray-500 truncate max-w-xs">{{ injury.athlete_description }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        {% if injury.is_critical %}
-                            <span class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">Critical</span>
-                        {% endif %}
-                        <span class="text-xs text-gray-400">{{ injury.created_at.strftime('%b %d') }}</span>
+            {% for injury in injuries[:5] %}
+            <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">
+                        {% if injury.body_part.value == 'Knee' %}🦵
+                        {% elif injury.body_part.value == 'Shoulder' %}💪
+                        {% elif injury.body_part.value == 'Ankle' %}🦶
+                        {% else %}🦴{% endif %}
+                    </span>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ injury.body_part.value }}</p>
+                        <p class="text-sm text-gray-500 truncate max-w-xs">{{ injury.athlete_description }}</p>
                     </div>
                 </div>
-                {% endfor %}
+                <div class="flex items-center gap-3">
+                    <a href="{{ url_for('patient.edit_injury', injury_id=injury.id) }}"
+                        class="text-xs font-medium text-blue-600 hover:text-blue-800">Edit</a>
+                    {% if injury.is_critical %}
+                    <span class="bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">Critical</span>
+                    {% endif %}
+                    <span class="text-xs text-gray-400">{{ injury.created_at.strftime('%b %d') }}</span>
+                </div>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="px-6 py-12 text-center">
-                    <svg class="mx-auto w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <p class="text-gray-500">No injuries submitted yet</p>
-                    <p class="text-sm text-gray-400 mt-1">Your injury history will appear here</p>
-                </div>
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-gray-500">No injuries submitted yet</p>
+                <p class="text-sm text-gray-400 mt-1">Your injury history will appear here</p>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -106,34 +123,40 @@
     <!-- Upcoming Appointments -->
     <div class="bg-white border border-blue-200 rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h2 class="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+            </div>
         </div>
         <div class="divide-y divide-gray-100">
             {% if appointments %}
-                {% for appt in appointments[:5] %}
-                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
-                    <div>
-                        <p class="font-medium text-gray-900">{{ appt.doctor.name }}</p>
-                        <p class="text-sm text-gray-500">{{ appt.appointment_date.strftime('%b %d, %Y at %I:%M %p') }}</p>
-                    </div>
-                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+            {% for appt in appointments[:5] %}
+            <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
+                <div>
+                    <p class="font-medium text-gray-900">{{ appt.doctor.name }}</p>
+                    <p class="text-sm text-gray-500">{{ appt.appointment_date.strftime('%b %d, %Y at %I:%M %p') }}</p>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full
                         {% if appt.status.value == 'Pending' %}bg-amber-100 text-amber-700
                         {% elif appt.status.value == 'Confirmed' %}bg-blue-100 text-blue-700
                         {% elif appt.status.value == 'Completed' %}bg-green-100 text-green-700
                         {% else %}bg-red-100 text-red-700{% endif %}">
-                        {{ appt.status.value }}
-                    </span>
-                </div>
-                {% endfor %}
+                    {{ appt.status.value }}
+                </span>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="px-6 py-12 text-center">
-                    <svg class="mx-auto w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <p class="text-gray-500">No appointments yet</p>
-                    <p class="text-sm text-gray-400 mt-1">Book an appointment after submitting an injury</p>
-                </div>
+            <div class="px-6 py-12 text-center">
+                <svg class="mx-auto w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-gray-500">No appointments yet</p>
+                <p class="text-sm text-gray-400 mt-1">Book an appointment after submitting an injury</p>
+            </div>
             {% endif %}
         </div>
     </div>

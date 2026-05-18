@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Submit Injury — InjuryAssist{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-900">Submit New Injury</h1>
+      </div>
+      <p class="text-gray-500 mt-1">Tell us what happened so we can match you with the right doctor</p>
+    </div>
+    <a href="{{ url_for('patient.dashboard') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back to
+      Dashboard</a>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-2xl shadow-sm p-8 max-w-2xl">
+    <form method="POST" class="space-y-5">
+      {{ form.hidden_tag() }}
+
+      <div>
+        <label for="body_part" class="block text-sm font-medium text-gray-700 mb-1">Body Part *</label>
+        {{ form.body_part(class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+        rounded-lg px-4 py-2.5 text-gray-900 outline-none transition bg-white", id="body_part") }}
+        {% for error in form.body_part.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label for="athlete_description" class="block text-sm font-medium text-gray-700 mb-1">Injury Description
+          *</label>
+        {{ form.athlete_description(class="w-full border border-gray-300 focus:border-blue-500 focus:ring-2
+        focus:ring-blue-200 rounded-lg px-4 py-2.5 text-gray-900 outline-none transition", placeholder="Describe how the
+        injury happened and what you feel", rows="4", id="athlete_description") }}
+        {% for error in form.athlete_description.errors %}
+        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="flex items-center gap-3">
+        {{ form.is_critical(class="h-4 w-4 text-blue-600 border-gray-300 rounded", id="is_critical") }}
+        <label for="is_critical" class="text-sm text-gray-700">This is a critical/severe injury</label>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg transition shadow-sm">
+          Find Matching Doctors
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

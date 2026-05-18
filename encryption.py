@@ -25,3 +25,5 @@ def decrypt_file(encrypted_data: bytes, key_b64: str) -> bytes:
     nonce = encrypted_data[:12]
     ciphertext = encrypted_data[12:]
     return AESGCM(key).decrypt(nonce, ciphertext, None)
+# integrity , data origin 
+# CIA -> confinc , integerity ,authen 

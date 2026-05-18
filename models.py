@@ -115,6 +115,8 @@ class Report(db.Model):
     generated_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     encrypted_file_path = db.Column(db.String(300))
     encryption_key = db.Column(db.String(100))  # base64-encoded AES key
+    original_filename = db.Column(db.String(255))
+    original_mimetype = db.Column(db.String(100))
     appointment_id = db.Column(db.Integer, db.ForeignKey("appointments.id"), nullable=False)
 
     def __repr__(self):

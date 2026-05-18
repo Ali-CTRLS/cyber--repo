@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Report Details — InjuryAssist{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-900">Report Details</h1>
+      </div>
+      <p class="text-gray-500 mt-1">View diagnosis and treatment plan</p>
+    </div>
+    <a href="{{ url_for('patient.appointments') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Back
+      to Appointments</a>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-gray-500">Doctor</p>
+        <p class="font-semibold text-gray-900">{{ report.appointment.doctor.name }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Appointment Date</p>
+        <p class="font-semibold text-gray-900">{{ report.appointment.appointment_date.strftime('%b %d, %Y at %I:%M %p')
+          }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Report Date</p>
+        <p class="font-semibold text-gray-900">{{ report.generated_date.strftime('%b %d, %Y') }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h2 class="text-lg font-semibold text-gray-900">Diagnosis</h2>
+    </div>
+    <p class="text-gray-700 whitespace-pre-line">{{ report.diagnosis }}</p>
+  </div>
+
+  <div class="bg-white border border-blue-200 rounded-xl p-6 shadow-sm mb-6">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 6v6l4 2M8 20h8a2 2 0 002-2V8a2 2 0 00-2-2h-1l-1-2H10L9 6H8a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      <h2 class="text-lg font-semibold text-gray-900">Treatment Plan</h2>
+    </div>
+    <p class="text-gray-700 whitespace-pre-line">{{ report.treatment_plan }}</p>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    {% if report.encrypted_file_path %}
+    <a href="{{ url_for('patient.report_download', report_id=report.id) }}"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Download Attachment</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

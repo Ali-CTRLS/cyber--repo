@@ -1,7 +1,7 @@
 """InjuryAssist — Flask application entry point."""
 
 import os
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, render_template
 from flask_login import LoginManager
 from werkzeug.security import generate_password_hash
 
@@ -42,6 +42,14 @@ def create_app():
     @app.route("/")
     def index():
         return redirect(url_for("auth.login"))
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(error):
+        return render_template("errors/500.html"), 500
 
     # Create tables and seed doctors on first run
     with app.app_context():

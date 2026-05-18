@@ -109,7 +109,7 @@ def _build_available_slots(slot_text: str, days_ahead: int = 21, interval_minute
 
 
 def _cancel_allowed(appointment) -> bool:
-    if appointment.status in (AppointmentStatus.CANCELLED, AppointmentStatus.COMPLETED):
+    if appointment.status != AppointmentStatus.PENDING:
         return False
 
     now = datetime.now()
@@ -306,6 +306,10 @@ def cancel_appointment(appointment_id):
 
     if appointment.status == AppointmentStatus.COMPLETED:
         flash("Completed appointments cannot be cancelled.", "warning")
+        return redirect(url_for("patient.appointments"))
+
+    if appointment.status != AppointmentStatus.PENDING:
+        flash("Only pending appointments can be cancelled.", "warning")
         return redirect(url_for("patient.appointments"))
 
     if not _cancel_allowed(appointment):

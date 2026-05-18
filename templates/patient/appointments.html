@@ -40,7 +40,7 @@
           <a href="{{ url_for('patient.report_view', report_id=appt.report.id) }}"
             class="text-sm font-medium text-blue-600 hover:text-blue-800">View Report</a>
           {% endif %}
-          {% if appt.status.value in ['Pending', 'Confirmed'] %}
+          {% if appt.status.value == 'Pending' %}
           {% if cancel_allowed.get(appt.id) %}
           <form method="post" action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}"
             onsubmit="return confirm('Cancel this appointment?');">
@@ -49,8 +49,10 @@
               class="text-sm border border-red-200 text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg">Cancel</button>
           </form>
           {% else %}
-          <span class="text-xs text-gray-400">Cancel locked (&lt;24h)</span>
+          <span class="text-xs text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">Cancel locked (&lt;24h)</span>
           {% endif %}
+          {% elif appt.status.value == 'Confirmed' %}
+          <span class="text-xs text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">Only pending appointments can be cancelled.</span>
           {% endif %}
         </div>
       </div>
